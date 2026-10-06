@@ -3,8 +3,8 @@
  * Точка входа приложения. Инициализация и монтирование данных в DOM.
  */
 
-import { autoserviceDB } from "./data.js";
-import { renderOrderRow, renderCarCard, renderClientCard } from "./render.js";
+import { autoserviceDB } from "data.js";
+import { renderOrderRow, renderCarCard, renderClientCard } from "render.js";
 
 function mountCollection(containerElement, itemsArray, renderFunction) {
   if (!containerElement) {
