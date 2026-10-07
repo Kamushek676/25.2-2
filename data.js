@@ -3,7 +3,7 @@
  * База данных автосервиса «АвтоМастер Pro»
  */
 
-export const autoserviceDB = {
+const autoserviceDB = {
   // Сущность 1: Заказ-наряды (15 записей, 9 полей)
   workOrders: [
     {
