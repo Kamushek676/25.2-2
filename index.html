@@ -1,116 +1,45 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>АвтоМастер Pro — Система управления автосервисом</title>
-  <link rel="stylesheet" href="./style.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>АвтоМастер — Панель управления</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
-<body class="app-layout">
-
-  <!-- БОКОВАЯ НАВИГАЦИЯ -->
-  <nav class="app-sidebar" aria-label="Главное меню автосервиса">
-    <figure class="brand-badge">
-      <img
-        src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%232563eb'%3E%3Cpath d='M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.22.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.85 7h10.29l1.04 3H5.81l1.04-3zM19 17H5v-4.66l.12-.34h13.77l.11.34V17z'/%3E%3Ccircle cx='7.5' cy='14.5' r='1.5'/%3E%3Ccircle cx='16.5' cy='14.5' r='1.5'/%3E%3C/svg%3E"
-        alt="Фирменный логотип системы АвтоМастер Pro"
-        width="36"
-        height="36">
-      <figcaption class="brand-title">АвтоМастер Pro</figcaption>
-    </figure>
-
-    <ul class="nav-list">
-      <li class="nav-item">
-        <a href="#orders-section" class="nav-link active" aria-current="page">Заказ-наряды</a>
-      </li>
-      <li class="nav-item">
-        <a href="#cars-section" class="nav-link">Автопарк на ремонте</a>
-      </li>
-      <li class="nav-item">
-        <a href="#clients-section" class="nav-link">Клиентская база</a>
-      </li>
-    </ul>
-  </nav>
-
-  <!-- ШАПКА -->
-  <header class="app-header">
-    <hgroup class="header-content">
-      <h1 class="header-heading">Диспетчерская панель автосервиса</h1>
-      <p class="header-caption">
-        Текущая рабочая смена:
-        <time datetime="2026-10-06">06 октября 2026 года</time>
-      </p>
-    </hgroup>
-  </header>
-
-  <!-- ОСНОВНАЯ ОБЛАСТЬ -->
-  <main class="app-main">
-
-    <!-- СЕКЦИЯ 1: ТАБЛИЦА ЗАКАЗ-НАРЯДОВ -->
-    <section id="orders-section" class="dashboard-block" aria-labelledby="orders-title">
-      <header class="block-header">
-        <h2 id="orders-title" class="block-title">Реестр активных заказ-нарядов</h2>
-        <p class="block-subtitle">Учёт выполняемых услуг, ответственных мастеров и стоимости</p>
-      </header>
-
-      <table class="data-table" id="orders-table">
-        <caption class="table-caption">
-          Журнал заказ-нарядов слесарного и диагностического цехов (15 записей)
-        </caption>
-        <thead>
-          <tr>
-            <th scope="col">Номер наряда</th>
-            <th scope="col">Дата открытия</th>
-            <th scope="col">Наименование работ</th>
-            <th scope="col">Ответственный мастер</th>
-            <th scope="col">Список операций</th>
-            <th scope="col">Сумма (руб.)</th>
-            <th scope="col">Текущий статус</th>
-          </tr>
-        </thead>
-        <tbody id="orders-table-body">
-          <!-- Генерируется через JS (без innerHTML) -->
-        </tbody>
-      </table>
-    </section>
-
-    <!-- СЕКЦИЯ 2: КАРТОЧКИ АВТОМОБИЛЕЙ НА ОБСЛУЖИВАНИИ -->
-    <section id="cars-section" class="dashboard-block" aria-labelledby="cars-title">
-      <header class="block-header">
-        <h2 id="cars-title" class="block-title">Автомобили в цеху</h2>
-        <p class="block-subtitle">Техническое состояние, VIN-номера, пробег и владельцы</p>
-      </header>
-      <ul id="cars-grid" class="cards-grid" aria-label="Сетка автомобилей в автосервисе">
-        <!-- Генерируется через JS (без innerHTML) -->
-      </ul>
-    </section>
-
-  </main>
-
-  <!-- ДОПОЛНИТЕЛЬНАЯ БОКОВАЯ ПАНЕЛЬ: КЛИЕНТЫ -->
-  <aside id="clients-section" class="app-extra-panel" aria-labelledby="clients-title">
-    <header class="extra-panel-header">
-      <h2 id="clients-title" class="extra-panel-title">Картотека клиентов</h2>
-      <p class="extra-panel-subtitle">Контакты, персональные скидки и заметки</p>
-    </header>
-    <ul id="clients-stack" class="clients-stack" aria-label="Список клиентов сервиса">
-      <!-- Генерируется через JS (без innerHTML) -->
-    </ul>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <a class="brand" href="#top"><span class="brand-mark">АМ</span><strong>АвтоМастер</strong></a>
+    <nav aria-label="Разделы"><a class="nav-link active" href="#orders">Заказ-наряды</a><a class="nav-link" href="#cars">Автомобили</a><a class="nav-link" href="#clients">Клиенты</a></nav>
+    <p class="shift"><small>Рабочая смена</small><strong>06 октября 2026</strong><span>Москва, Варшавское шоссе</span></p>
   </aside>
-
-  <!-- ПОДВАЛ С АДРЕСОМ -->
-  <footer class="app-footer">
-    <address class="footer-contacts">
-      Техцентр «АвтоМастер Pro» • Москва, Варшавское шоссе, д. 45 • Диспетчер: 
-      <a href="tel:+74951234567">+7 (495) 123-45-67</a> • 
-      <a href="mailto:service@automaster-pro.ru">service@automaster-pro.ru</a>
-    </address>
-    <p class="footer-copyright">
-      © <time datetime="2026">2026</time> ПО «АвтоМастер Инжиниринг». Все права защищены.
-    </p>
-  </footer>
-
-  <!-- МОДУЛЬ ПРИЛОЖЕНИЯ -->
-  <script type="module" src="./app.js"></script>
-</body>
-</html>
+  <header class="header" id="top"><div><small>Сервисный центр · Москва</small><h1>Диспетчерская панель</h1></div><p>Текущая смена<br><strong>06 октября 2026 года</strong></p></header>
+  <main class="main">
+    <section class="stats" aria-label="Сводка"><article><span>Заказ-наряды</span><strong id="stat-orders">—</strong><small>в реестре</small></article><article><span>В работе</span><strong id="stat-active">—</strong><small>активных заказов</small></article><article><span>Автомобили</span><strong id="stat-cars">—</strong><small>в базе сервиса</small></article><article><span>Клиенты</span><strong id="stat-clients">—</strong><small>в картотеке</small></article></section>
+    <section class="panel" id="orders"><div class="section-head"><div><h2>Реестр активных заказ-нарядов</h2><p>Учёт работ, мастеров и стоимости</p></div><span id="orders-total" class="count"></span></div>
+      <form class="filters" id="order-filters">
+        <div class="field grow"><label for="search-orders">Поиск</label><input id="search-orders" type="search" placeholder="Номер, работа, автомобиль или мастер" autocomplete="off"></div>
+        <div class="field"><label for="status-filter">Статус наряда</label><select id="status-filter"><option value="">Все статусы</option></select></div>
+        <fieldset class="field master-filter"><legend>Мастера</legend><div id="master-filters" class="choice-list"></div></fieldset>
+        <fieldset class="field"><legend>Вид списка</legend><div class="choice-list"><label class="choice radio"><input type="radio" name="view" value="table" checked><span>Таблица</span></label><label class="choice radio"><input type="radio" name="view" value="cards"><span>Карточки</span></label></div></fieldset>
+        <button class="button light" type="reset">Сбросить</button>
+      </form>
+      <p class="result-count" id="result-count" aria-live="polite"></p>
+      <div class="table-wrap" id="orders-table-wrap"><table class="data-table"><caption>Журнал заказ-нарядов слесарного и диагностического цехов</caption><thead><tr>
+        <th scope="col" aria-sort="none"><button class="sort-button" data-sort="orderNumber" type="button">Номер наряда <i class="sort-arrow"></i></button></th>
+        <th scope="col" aria-sort="none"><button class="sort-button" data-sort="createdAt" type="button">Дата открытия <i class="sort-arrow"></i></button></th>
+        <th scope="col" aria-sort="none"><button class="sort-button" data-sort="title" type="button">Наименование работ <i class="sort-arrow"></i></button></th>
+        <th scope="col">Ответственный мастер</th><th scope="col">Список операций</th>
+        <th scope="col" aria-sort="none"><button class="sort-button" data-sort="totalCost" type="button">Сумма <i class="sort-arrow"></i></button></th>
+        <th scope="col" aria-sort="none"><button class="sort-button" data-sort="status" type="button">Текущий статус <i class="sort-arrow"></i></button></th>
+      </tr></thead><tbody id="orders-table-body"></tbody></table></div>
+      <ul class="order-cards" id="orders-cards" hidden></ul><p id="orders-empty" class="empty" hidden>По выбранным условиям ничего не найдено.</p>
+    </section>
+    <section class="panel" id="cars"><div class="section-head"><div><h2>Автомобили в цеху</h2><p>Состояние, VIN, пробег и владельцы</p></div><span id="cars-total" class="count"></span></div><ul id="cars-grid" class="cards-grid"></ul></section>
+  </main>
+  <aside class="extra" id="clients"><div class="section-head"><div><h2>Картотека клиентов</h2><p>Контакты, скидки и заметки</p></div></div><ul id="clients-stack" class="clients-stack"></ul></aside>
+  <footer class="footer"><address>Техцентр «АвтоМастер» · Москва, Варшавское шоссе, д. 45 · Диспетчер: +7 (495) 123-45-67 · <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="16657364607f757356776362797b7765627364387a7975777a">[email&#160;protected]</a></address><p>© 2026 АвтоМастер. Все права защищены.</p></footer>
+</div>
+<div class="modal" id="detail-modal" hidden><div class="backdrop" data-modal-close></div><section class="dialog modal-dialog" role="dialog" aria-modal="true" aria-labelledby="modal-title" tabindex="-1"><header><h2 id="modal-title">Подробности</h2><button id="modal-close" class="icon-button" type="button" aria-label="Закрыть окно">×</button></header><div id="modal-content" class="modal-content"></div><footer><button class="button light" type="button" data-modal-close>Закрыть</button><button class="button primary" type="button" disabled>Изменить заказ</button></footer></section></div>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script type="module" src="js/app.js"></script>
+</body></html>
