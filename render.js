@@ -1,9 +1,3 @@
-/**
- * js/render.js
- * Чистые функции рендера DOM-элементов без innerHTML
- */
-
-// 1. Вспомогательные функции форматирования
 function formatDateRussian(isoString) {
   const dateObj = new Date(isoString);
   return dateObj.toLocaleDateString("ru-RU", {
@@ -14,26 +8,23 @@ function formatDateRussian(isoString) {
 }
 
 function formatCurrency(amount) {
-  return `${amount.toLocaleString("ru-RU")} ₽`;
+  return amount.toLocaleString("ru-RU") + " ₽";
 }
 
 function getStatusBadgeConfig(status) {
   const configs = {
-    // Статусы заказ-нарядов
     new: { label: "Новый", className: "status-badge status-badge--info" },
     in_progress: { label: "В работе", className: "status-badge status-badge--warning" },
     waiting_parts: { label: "Ждёт запчасти", className: "status-badge status-badge--warning" },
     done: { label: "Завершён", className: "status-badge status-badge--success" },
     cancelled: { label: "Отменён", className: "status-badge status-badge--error" },
 
-    // Статусы автомобилей
     in_repair: { label: "В ремонте", className: "status-badge status-badge--warning" },
     ready: { label: "Готов к выдаче", className: "status-badge status-badge--success" },
     diagnostics: { label: "Диагностика", className: "status-badge status-badge--info" },
     waiting_queue: { label: "В очереди", className: "status-badge status-badge--info" },
     delivered: { label: "Выдан владельцу", className: "status-badge status-badge--success" },
 
-    // Статусы клиентов
     active: { label: "Постоянный", className: "status-badge status-badge--success" },
     vip: { label: "VIP-клиент", className: "status-badge status-badge--warning" },
     corporate: { label: "Корпоративный", className: "status-badge status-badge--info" },
@@ -44,139 +35,181 @@ function getStatusBadgeConfig(status) {
   return configs[status] || { label: status, className: "status-badge status-badge--info" };
 }
 
-// 2. Рендер строки таблицы заказ-наряда (возвращает HTMLTableRowElement)
-export function renderOrderRow(order) {
+function makeBadge(status) {
+  const badgeConfig = getStatusBadgeConfig(status);
+  const statusSpan = document.createElement("span");
+  statusSpan.className = badgeConfig.className;
+  statusSpan.textContent = badgeConfig.label;
+  return statusSpan;
+}
+
+function el(tag, className, text) {
+  const node = document.createElement(tag);
+  if (className) node.className = className;
+  if (text !== undefined) node.textContent = text;
+  return node;
+}
+
+function getPriority(order) {
+  if (order.status === "cancelled" || order.status === "done") {
+    return { text: "Низкий", cls: "priority priority--low" };
+  }
+  if (order.status === "waiting_parts" || order.totalCost >= 15000) {
+    return { text: "Высокий", cls: "priority priority--high" };
+  }
+  if (order.status === "new" || order.status === "in_progress") {
+    return { text: "Средний", cls: "priority priority--mid" };
+  }
+  return { text: "Низкий", cls: "priority priority--low" };
+}
+
+function fillCell(td, label, node) {
+  td.setAttribute("data-label", label);
+  td.append(node);
+  return td;
+}
+
+function renderOrderRow(order) {
   const tr = document.createElement("tr");
+  tr.tabIndex = 0;
+  const priority = getPriority(order);
 
-  // Ячейка 1: Номер наряда
   const tdNumber = document.createElement("td");
-  const strongNumber = document.createElement("strong");
-  strongNumber.textContent = `${order.orderNumber} (${order.id})`;
-  tdNumber.append(strongNumber);
+  const numWrap = el("div");
+  numWrap.append(el("strong", "", order.orderNumber));
+  numWrap.append(el("span", "cell-sub", order.id));
+  fillCell(tdNumber, "Номер наряда", numWrap);
 
-  // Ячейка 2: Дата открытия
   const tdDate = document.createElement("td");
   const timeEl = document.createElement("time");
   timeEl.setAttribute("datetime", order.createdAt);
   timeEl.textContent = formatDateRussian(order.createdAt);
-  tdDate.append(timeEl);
+  fillCell(tdDate, "Дата открытия", timeEl);
 
-  // Ячейка 3: Наименование работ
   const tdTitle = document.createElement("td");
-  tdTitle.textContent = order.title;
+  const titleWrap = el("div");
+  titleWrap.append(document.createTextNode(order.title));
+  const sub = el("span", "cell-sub");
+  sub.append(el("span", priority.cls, priority.text));
+  titleWrap.append(sub);
+  fillCell(tdTitle, "Наименование работ", titleWrap);
 
-  // Ячейка 4: Ответственный мастер
   const tdMaster = document.createElement("td");
-  tdMaster.textContent = `${order.master.name} (${order.master.specialization})`;
+  tdMaster.textContent = order.master.name + " (" + order.master.specialization + ")";
+  tdMaster.setAttribute("data-label", "Ответственный мастер");
 
-  // Ячейка 5: Список операций
   const tdServices = document.createElement("td");
   tdServices.textContent = order.services.join(", ");
+  tdServices.setAttribute("data-label", "Список операций");
 
-  // Ячейка 6: Стоимость
   const tdCost = document.createElement("td");
-  tdCost.textContent = formatCurrency(order.totalCost);
+  fillCell(tdCost, "Сумма (руб.)", document.createTextNode(formatCurrency(order.totalCost)));
 
-  // Ячейка 7: Статус
   const tdStatus = document.createElement("td");
-  const badgeConfig = getStatusBadgeConfig(order.status);
-  const statusSpan = document.createElement("span");
-  statusSpan.className = badgeConfig.className;
-  statusSpan.textContent = badgeConfig.label;
-  tdStatus.append(statusSpan);
+  fillCell(tdStatus, "Текущий статус", makeBadge(order.status));
 
   tr.append(tdNumber, tdDate, tdTitle, tdMaster, tdServices, tdCost, tdStatus);
+  tr.addEventListener("click", function () { openOrderModal(order); });
+  tr.addEventListener("keydown", function (event) {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      openOrderModal(order);
+    }
+  });
   return tr;
 }
 
-// 3. Рендер карточки автомобиля (возвращает HTMLLIElement с вложенным article)
-export function renderCarCard(car) {
+function renderOrderCard(order) {
   const li = document.createElement("li");
-  const article = document.createElement("article");
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.className = "order-card";
+  const priority = getPriority(order);
+
+  const head = el("div", "card-head");
+  head.append(el("span", "card-id", order.id + " · " + order.orderNumber));
+  head.append(makeBadge(order.status));
+
+  const title = el("h3", "order-title", order.title);
+  const desc = el("p", "order-desc", order.description);
+
+  const meta = el("p", "card-meta");
+  const timeEl = document.createElement("time");
+  timeEl.setAttribute("datetime", order.createdAt);
+  timeEl.textContent = formatDateRussian(order.createdAt);
+  meta.append(timeEl, document.createTextNode(" · " + order.master.name));
+
+  const tags = el("div", "tag-row");
+  tags.append(el("span", "tag", order.master.specialization));
+  tags.append(el("span", "tag", order.master.grade));
+
+  btn.append(head, title, desc, meta, tags, el("span", priority.cls, "Приоритет: " + priority.text), el("p", "card-sum", formatCurrency(order.totalCost)));
+  btn.addEventListener("click", function () { openOrderModal(order); });
+  li.append(btn);
+  return li;
+}
+
+function renderCarCard(car) {
+  const li = document.createElement("li");
+  const article = document.createElement("button");
+  article.type = "button";
   article.className = "car-card";
 
-  // Заголовок карточки
-  const h3 = document.createElement("h3");
-  h3.className = "car-title";
-  h3.textContent = `${car.model} [${car.specs.plate}]`;
+  const head = el("div", "card-head");
+  head.append(el("span", "card-id", car.id));
+  head.append(makeBadge(car.status));
 
-  // Описание автомобиля
-  const pDesc = document.createElement("p");
-  pDesc.className = "car-desc";
-  pDesc.textContent = car.description;
+  const h3 = el("h3", "car-title", car.model + " [" + car.specs.plate + "]");
+  const pDesc = el("p", "car-desc", car.description);
+  const pOwner = el("p", "car-meta", "Владелец: " + car.owner.name + " · ответственный: приёмка");
 
-  // Владелец
-  const pOwner = document.createElement("p");
-  pOwner.className = "car-meta";
-  pOwner.textContent = `Владелец: ${car.owner.name}`;
+  const pSpecs = el("p", "car-meta", car.year + " г. • Пробег: " + car.mileage.toLocaleString("ru-RU") + " км • " + car.specs.engine);
 
-  // Технические данные (год, пробег, двигатель)
-  const pSpecs = document.createElement("p");
-  pSpecs.className = "car-meta";
-  pSpecs.textContent = `${car.year} г. • Пробег: ${car.mileage.toLocaleString("ru-RU")} км • ${car.specs.engine}`;
-
-  // Дата постановки на учёт
-  const pDate = document.createElement("p");
-  pDate.className = "car-meta";
-  pDate.textContent = "В сервисе с: ";
+  const pDate = el("p", "car-meta", "В сервисе с: ");
   const timeEl = document.createElement("time");
   timeEl.setAttribute("datetime", car.registeredAt);
   timeEl.textContent = formatDateRussian(car.registeredAt);
   pDate.append(timeEl);
 
-  // Бейдж статуса
-  const badgeConfig = getStatusBadgeConfig(car.status);
-  const statusSpan = document.createElement("span");
-  statusSpan.className = badgeConfig.className;
-  statusSpan.textContent = badgeConfig.label;
+  const tags = el("div", "tag-row");
+  tags.append(el("span", "tag", car.specs.color));
+  tags.append(el("span", "tag", car.specs.plate));
+  tags.append(el("span", "tag", "VIN " + car.vin.slice(-6)));
 
-  article.append(h3, pDesc, pOwner, pSpecs, pDate, statusSpan);
+  article.append(head, h3, pDesc, pOwner, pSpecs, pDate, tags);
+  article.addEventListener("click", function () { openCarModal(car); });
   li.append(article);
   return li;
 }
 
-// 4. Рендер карточки клиента (возвращает HTMLLIElement с вложенным article)
-export function renderClientCard(client) {
+function renderClientCard(client) {
   const li = document.createElement("li");
-  const article = document.createElement("article");
+  const article = document.createElement("button");
+  article.type = "button";
   article.className = "client-card";
 
-  // ФИО клиента и ID
-  const h3 = document.createElement("h3");
-  h3.className = "client-name";
-  h3.textContent = `${client.fullName} (${client.id})`;
+  const head = el("div", "card-head");
+  head.append(el("span", "card-id", client.id));
+  head.append(makeBadge(client.status));
 
-  // Заметки
-  const pNotes = document.createElement("p");
-  pNotes.className = "client-text";
-  pNotes.textContent = client.notes;
+  const h3 = el("h3", "client-name", client.fullName);
+  const pNotes = el("p", "client-text", client.notes);
+  const pContacts = el("p", "client-text", "Тел: " + client.phone + " • Скидка: " + client.discountRate + "%");
+  const pAddress = el("p", "client-text", client.address.city + ", " + client.address.street);
 
-  // Контакты и скидка
-  const pContacts = document.createElement("p");
-  pContacts.className = "client-text";
-  pContacts.textContent = `Тел: ${client.phone} • Скидка: ${client.discountRate}%`;
-
-  // Адрес
-  const pAddress = document.createElement("p");
-  pAddress.className = "client-text";
-  pAddress.textContent = `Адрес: ${client.address.city}, ${client.address.street}`;
-
-  // Дата регистрации
-  const pDate = document.createElement("p");
-  pDate.className = "client-text";
-  pDate.textContent = "Клиент с: ";
+  const pDate = el("p", "card-meta", "Клиент с: ");
   const timeEl = document.createElement("time");
   timeEl.setAttribute("datetime", client.registeredAt);
   timeEl.textContent = formatDateRussian(client.registeredAt);
   pDate.append(timeEl);
+  pDate.append(document.createTextNode(" · менеджер: приёмка"));
 
-  // Бейдж статуса клиента
-  const badgeConfig = getStatusBadgeConfig(client.status);
-  const statusSpan = document.createElement("span");
-  statusSpan.className = badgeConfig.className;
-  statusSpan.textContent = badgeConfig.label;
+  const tags = el("div", "tag-row");
+  tags.append(el("span", "tag", "скидка " + client.discountRate + "%"));
+  tags.append(el("span", "tag", client.address.city));
 
-  article.append(h3, pNotes, pContacts, pAddress, pDate, statusSpan);
+  article.append(head, h3, pNotes, pContacts, pAddress, pDate, tags);
+  article.addEventListener("click", function () { openClientModal(client); });
   li.append(article);
   return li;
 }
