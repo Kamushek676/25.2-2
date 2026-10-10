@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>АвтоМастер Pro — Система управления автосервисом</title>
+  <script>
+(function () {
+  var theme = localStorage.getItem("am-theme");
+  if (theme !== "light" && theme !== "dark" && theme !== "contrast") {
+    theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  }
+  document.documentElement.setAttribute("data-theme", theme);
+  var accent = localStorage.getItem("am-accent");
+  if (accent && /^#[0-9a-fA-F]{6}$/.test(accent)) {
+    var n = accent.slice(1);
+    var r = parseInt(n.slice(0, 2), 16);
+    var g = parseInt(n.slice(2, 4), 16);
+    var b = parseInt(n.slice(4, 6), 16);
+    var root = document.documentElement.style;
+    root.setProperty("--color-accent", accent);
+    root.setProperty("--accent-rgb", r + ", " + g + ", " + b);
+  }
+})();
+</script>
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <div class="app-layout">
+
+    <aside class="app-sidebar" id="app-sidebar">
+      <div class="brand-badge">
+        <span class="brand-mark" aria-hidden="true">А</span>
+        <span class="brand-title">АвтоМастер Pro</span>
+      </div>
+      <nav aria-label="Разделы системы">
+        <ul class="nav-list">
+          <li><a class="nav-link active" href="#orders">Заказ-наряды</a></li>
+          <li><a class="nav-link" href="#cars">Автопарк на ремонте</a></li>
+          <li><a class="nav-link" href="#clients">Клиентская база</a></li>
+        </ul>
+      </nav>
+    </aside>
+
+    <header class="app-header">
+      <button class="burger" type="button" id="menu-toggle" aria-label="Открыть меню" aria-expanded="false" aria-controls="app-sidebar">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+      <div class="header-text">
+        <h1 class="header-heading">Диспетчерская панель автосервиса</h1>
+        <p class="header-caption">
+          Текущая рабочая смена:
+          <time datetime="2026-10-06">06 октября 2026 года</time>
+        </p>
+      </div>
+      <div class="theme-bar">
+        <div class="theme-switch" role="group" aria-label="Тема оформления">
+          <button class="theme-btn" type="button" data-theme-value="light">Светлая</button>
+          <button class="theme-btn" type="button" data-theme-value="dark">Тёмная</button>
+          <button class="theme-btn" type="button" data-theme-value="contrast">Контраст</button>
+        </div>
+        <label class="accent-picker" for="accent-color">
+          Акцент
+          <input type="color" id="accent-color" value="#9a3412">
+        </label>
+      </div>
+    </header>
+
+    <main class="app-main">
+
+      <section class="dashboard-block" id="orders" aria-labelledby="orders-title">
+        <div class="block-header">
+          <h2 class="block-title" id="orders-title">Реестр активных заказ-нарядов</h2>
+          <p class="block-subtitle">Учёт выполняемых услуг, ответственных мастеров и стоимости</p>
+        </div>
+
+        <form class="filters" id="order-filters" aria-label="Фильтры заказ-нарядов">
+          <div class="filter-field">
+            <label for="search-input">Поиск по наряду</label>
+            <input
+              class="text-input"
+              type="search"
+              id="search-input"
+              name="search"
+              placeholder="Номер, работа или мастер"
+              autocomplete="off">
+          </div>
+
+          <div class="filter-field">
+            <label for="status-select">Статус</label>
+            <select class="select-input" id="status-select" name="status">
+              <option value="all">Все статусы</option>
+              <option value="new">Новый</option>
+              <option value="in_progress">В работе</option>
+              <option value="waiting_parts">Ждёт запчасти</option>
+              <option value="done">Завершён</option>
+              <option value="cancelled">Отменён</option>
+            </select>
+          </div>
+
+          <fieldset class="filter-field filter-checks">
+            <legend>Приоритет</legend>
+            <label class="check">
+              <input type="checkbox" name="priority" value="high" checked>
+              <span class="check-box" aria-hidden="true"></span>
+              <span>Высокий</span>
+            </label>
+            <label class="check">
+              <input type="checkbox" name="priority" value="normal" checked>
+              <span class="check-box" aria-hidden="true"></span>
+              <span>Обычный</span>
+            </label>
+            <label class="check">
+              <input type="checkbox" name="priority" value="low" checked>
+              <span class="check-box" aria-hidden="true"></span>
+              <span>Низкий</span>
+            </label>
+          </fieldset>
+
+          <fieldset class="filter-field filter-radios">
+            <legend>Вид списка</legend>
+            <label class="radio">
+              <input type="radio" name="view" value="table" checked>
+              <span class="radio-dot" aria-hidden="true"></span>
+              <span>Таблица</span>
+            </label>
+            <label class="radio">
+              <input type="radio" name="view" value="cards">
+              <span class="radio-dot" aria-hidden="true"></span>
+              <span>Карточки</span>
+            </label>
+          </fieldset>
+
+          <div class="filter-actions">
+            <button class="btn btn-ghost" type="reset" id="reset-filters">Сбросить</button>
+            <button class="btn btn-primary" type="button" id="demo-disabled" disabled>Закрыть смену</button>
+          </div>
+        </form>
+
+        <p class="result-count" id="orders-count">Журнал заказ-нарядов слесарного и диагностического цехов</p>
+
+        <div class="table-wrap" id="orders-table-wrap">
+          <table class="data-table">
+            <caption class="table-caption">Журнал заказ-нарядов слесарного и диагностического цехов (15 записей)</caption>
+            <thead>
+              <tr>
+                <th scope="col" aria-sort="none">
+                  <button class="sort-btn" type="button" data-sort="orderNumber">Номер наряда</button>
+                </th>
+                <th scope="col" aria-sort="none">
+                  <button class="sort-btn" type="button" data-sort="createdAt">Дата открытия</button>
+                </th>
+                <th scope="col" aria-sort="none">
+                  <button class="sort-btn" type="button" data-sort="title">Наименование работ</button>
+                </th>
+                <th scope="col" aria-sort="none">
+                  <button class="sort-btn" type="button" data-sort="master">Ответственный мастер</button>
+                </th>
+                <th scope="col">Список операций</th>
+                <th scope="col" aria-sort="none">
+                  <button class="sort-btn" type="button" data-sort="totalCost">Сумма (руб.)</button>
+                </th>
+                <th scope="col" aria-sort="none">
+                  <button class="sort-btn" type="button" data-sort="priority">Приоритет</button>
+                </th>
+                <th scope="col" aria-sort="none">
+                  <button class="sort-btn" type="button" data-sort="status">Текущий статус</button>
+                </th>
+              </tr>
+            </thead>
+            <tbody id="orders-table-body"></tbody>
+          </table>
+        </div>
+
+        <ul class="order-cards" id="orders-cards" hidden></ul>
+        <p class="empty-note" id="orders-empty" hidden>По выбранным фильтрам нарядов нет.</p>
+      </section>
+
+      <section class="dashboard-block" id="cars" aria-labelledby="cars-title">
+        <div class="block-header">
+          <h2 class="block-title" id="cars-title">Автомобили в цеху</h2>
+          <p class="block-subtitle">Техническое состояние, VIN-номера, пробег и владельцы</p>
+        </div>
+        <ul class="cards-grid" id="cars-grid"></ul>
+      </section>
+
+    </main>
+
+    <aside class="app-extra-panel" id="clients" aria-labelledby="clients-title">
+      <div class="extra-panel-header">
+        <h2 class="extra-panel-title" id="clients-title">Картотека клиентов</h2>
+        <p class="extra-panel-subtitle">Контакты, персональные скидки и заметки</p>
+      </div>
+      <ul class="clients-stack" id="clients-stack"></ul>
+    </aside>
+
+    <footer class="app-footer">
+      <address class="footer-contacts">
+        Техцентр «АвтоМастер Pro» • Москва, Варшавское шоссе, д. 45 • Диспетчер:
+        <a href="tel:+74951234567">+7 (495) 123-45-67</a>
+        •
+        <a href="mailto:dispatcher@avtomaster.pro">dispatcher@avtomaster.pro</a>
+      </address>
+      <p>© 2026 ПО «АвтоМастер Инжиниринг». Все права защищены.</p>
+    </footer>
+  </div>
+
+  <div class="nav-overlay" id="nav-overlay"></div>
+
+  <div class="modal" id="detail-modal" hidden>
+    <div class="modal-backdrop" data-close="true"></div>
+    <div
+      class="modal-dialog"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="modal-title"
+      tabindex="-1">
+      <header class="modal-header">
+        <div>
+          <p class="modal-kicker" id="modal-kicker"></p>
+          <h2 class="modal-title" id="modal-title"></h2>
+        </div>
+        <button class="icon-btn" type="button" id="modal-close" aria-label="Закрыть">×</button>
+      </header>
+      <div class="modal-body" id="modal-body"></div>
+      <footer class="modal-footer">
+        <button class="btn btn-ghost" type="button" data-close="true">Закрыть</button>
+        <button class="btn btn-primary" type="button" id="modal-print">Печать наряда</button>
+      </footer>
+    </div>
+  </div>
+
+  <script src="js/data.js"></script>
+  <script src="js/render.js"></script>
+  <script src="js/theme.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
